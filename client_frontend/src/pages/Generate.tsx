@@ -33,45 +33,40 @@ export default function Generate() {
   const handleGenerate = async () => {
     if (!isLoggedIn) return toast.error("Please login to generate thumbnail");
     if (!title.trim()) return toast.error("Title is required");
+    setLoading(true);
 
     try {
-      setLoading(true);
-
       const api_payload = {
-        title: title, // top title
-        topic: title, // center text
-        additionalPrompt: additionalDetails,
-        aspectRatio: aspectRatio,
-        colorScheme: colorSchemaId,
-        style: style,
+        title, // top title
+        prompt: additionalDetails,
+        aspect_ratio: aspectRatio,
+        color_scheme: colorSchemaId,
+        style,
+        text_overlay: true,
       };
 
       const { data } = await api.post("/api/thumbnil/generate", api_payload);
 
-      if (data?.imageUrl) {
-        setThumbnil({
-          image_url: data.imageUrl,
-          aspect_ratio: aspectRatio,
-          title: title,
-        } as IThumbnail);
-
-        toast.success(data.message || "Thumbnail generated");
-      } else {
-        toast.error("Image URL not returned from server");
+      if (data.thumbnil) {
+        navigate(`/generate/${data.thumbnil._id}`);
+        toast.success(data.message);
       }
-    } catch (error: any) {
-      console.error("Generate error:", error);
-      toast.error("Failed to generate thumbnail");
+    } catch (err: any) {
+      console.error("Error generating thumbnil:", err);
+      toast.error(err?.response?.data?.message || "Error generating thumbnil");
     } finally {
-      setLoading(false); // 🔥 MOST IMPORTANT LINE
+      setLoading(false);
     }
   };
   const fetchThumnil = async () => {
     try {
       const { data } = await api.get(`/api/user/thumbnil/${id}`);
       setThumbnil(data?.thumbnil as IThumbnail);
-      setLoading(!data?.thumbnil?.image_url);
+      setLoading(
+        Boolean(data?.thumbnil?.isGenerating && !data?.thumbnil?.image_url),
+      );
       setAdditionalDetails(data?.thumbnil?.user_prompt);
+      setTitle(data?.thumbnil?.title)
       setColorSchemaId(data?.thumbnil?.color_scheme);
       setAspectRatio(data?.thumbnil?.aspect_ratio);
       setStyle(data?.thumbnil?.style);
@@ -90,16 +85,21 @@ export default function Generate() {
       }, 3000);
       return () => clearInterval(interval);
     }
-  }, [id, isLoggedIn, loading]);
+  }, [id, isLoggedIn]);
   useEffect(() => {
     if (!id && isLoggedIn) {
       setThumbnil(null);
     }
-  });
+  }, [id, isLoggedIn]);
 
   return (
     <>
-      <div className="pt-24 min-h-screen">
+      <div className="relative overflow-hidden pt-24 min-h-screen">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-pink-500/20 blur-3xl" />
+          <div className="absolute top-32 right-[-6rem] h-96 w-96 rounded-full bg-fuchsia-500/20 blur-3xl" />
+          <div className="absolute bottom-[-6rem] left-1/3 h-80 w-80 rounded-full bg-rose-500/15 blur-3xl" />
+        </div>
         <main className="max-w-6xl max-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 lg:pb-8">
           <div className="grid lg:grid-cols-[400px_1fr] gap-8">
             {/* {left pannel} */}
@@ -168,7 +168,7 @@ export default function Generate() {
                 {!id && (
                   <button
                     onClick={handleGenerate}
-                    className="text-[15px] w-full py-3.5 rounded-xl font-medium bg-linear-to-b from-pink-500 hover:from-pink-700 disabled:cursor-not-allowed transition-colors"
+                    className="text-[15px] w-full py-3.5 rounded-xl font-medium bg-pink-500 hover:from-pink-700 disabled:cursor-not-allowed transition-colors"
                   >
                     {loading ? "Generating..." : "Generate Thumbnil"}
                   </button>

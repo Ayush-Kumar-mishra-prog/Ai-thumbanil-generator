@@ -34,7 +34,11 @@ export default function PreviewPanel({
 
   return (
     <>
-      <div className="relative mx-auto w-full max-w-2xl">
+      <div className="relative mx-auto w-full max-w-2xl overflow-hidden">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-16 -left-16 rounded-full bg-pink-400/20 blur-3xl" />
+          <div className="absolute bottom-[-3rem] right-[-3rem] h-72 w-72 rounded-full bg-fuchsia-400/20 blur-3xl" />
+        </div>
         <div className={`relative  ${aspectClasses[aspectRatio]}`}>
           {isLoading && (
             <div

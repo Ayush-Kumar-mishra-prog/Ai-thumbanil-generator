@@ -4,7 +4,7 @@ import api from "../config/api";
 import toast from "react-hot-toast";
 interface AuthContextProps {
   isLoggedIn: boolean;
-  setIsLoggedIn: (value: boolean) => void;
+  setIsLoggedIn: (isLoggedIn: boolean) => void;
   user: IUser | null;
   setUser: (user: IUser | null) => void;
   login: (user: { email: string; password: string }) => Promise<void>;

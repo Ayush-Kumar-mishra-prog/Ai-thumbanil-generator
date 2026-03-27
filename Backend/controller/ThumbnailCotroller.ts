@@ -33,21 +33,28 @@ export const generateThumbnil = async (req: Request, res: Response) => {
     const { userId } = req.session;
     const {
       title,
-      prompt: user_prompt,
+      prompt,
+      additionalPrompt,
       style,
-      aspect_ratio = "16:9",
+      aspect_ratio,
+      aspectRatio,
       color_scheme,
+      colorScheme,
       text_overlay,
     } = req.body;
+    const user_prompt = prompt ?? additionalPrompt;
+    const final_aspect_ratio = aspect_ratio ?? aspectRatio ?? "16:9";
+    const final_color_scheme = color_scheme ?? colorScheme;
 
-    // ✅ Create DB entry
+    //  Create DB entry
     thumbnil = await Thumbnil.create({
       userId,
       title,
       prompt_used: user_prompt,
+      user_prompt,
       style,
-      aspect_ratio,
-      color_scheme,
+      aspect_ratio: final_aspect_ratio,
+      color_scheme: final_color_scheme,
       text_overlay,
       isGenerating: true,
     });
@@ -60,11 +67,11 @@ Title: ${title}
 
 Style: ${stylePrompts[style as keyof typeof stylePrompts]}
 
-${color_scheme ? `Color: ${colorSchemeDescriptions[color_scheme as keyof typeof colorSchemeDescriptions]}` : ""}
+${final_color_scheme ? `Color: ${colorSchemeDescriptions[final_color_scheme as keyof typeof colorSchemeDescriptions]}` : ""}
 
 ${user_prompt ? `Extra: ${user_prompt}` : ""}
 
-${text_overlay ? `Text on image: "${text_overlay}"` : ""}
+${text_overlay ? `Text on image: "${title}"` : ""}
 
 Make it visually striking, high CTR, bold, professional, and attention-grabbing.
 `;
@@ -106,14 +113,26 @@ Make it visually striking, high CTR, bold, professional, and attention-grabbing.
       .status(200)
       .json({ message: "Thumbnil generated successfully", thumbnil });
   } catch (err: any) {
-     console.error("Error generating thumbnil:", err);
+    console.error("Error generating thumbnil:", err);
+    const providerMessage =
+      err?.response?.data?.error?.message ||
+      err?.response?.data?.message ||
+      err?.message;
+    if (thumbnil) {
+      try {
+        thumbnil.isGenerating = false;
+        await thumbnil.save();
+      } catch (saveErr) {
+        console.error("Error updating thumbnil status:", saveErr);
+      }
+    }
     res
       .status(500)
       .json({
-        message: "Server error during thumbnil generation",
-        error: err.message,
+        message: providerMessage || "Server error during thumbnil generation",
+        error: providerMessage || err.message,
       });
-    }
+  }
 }
 
 export const deleteThumbnil = async (req: Request, res: Response) => {

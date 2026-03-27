@@ -9,7 +9,7 @@ export default function ColorSchema({value, onChange}:{value:String;
         <>
         <div className="space-y-3">
             <label className='block text-sm font-medium text-zinc-200'>Color Schema</label>
-            <div className="grid grid-col-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {colorSchemes.map((scheme)=>
               <button key={scheme.id} 
               onClick={()=>onChange(scheme.id)}

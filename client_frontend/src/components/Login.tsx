@@ -34,7 +34,12 @@ export default function Login() {
   };
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="relative overflow-hidden min-h-screen flex items-center justify-center">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-pink-500/20 blur-3xl" />
+          <div className="absolute top-24 right-[-7rem] h-96 w-96 rounded-full bg-fuchsia-500/20 blur-3xl" />
+          <div className="absolute bottom-[-6rem] left-1/3 h-72 w-72 rounded-full bg-rose-500/15 blur-3xl" />
+        </div>
         <form
           onSubmit={handleSubmit}
           className="sm:w-87.5 w-full text-center bg-gray-900 border border-gray-800 rounded-2xl px-8"
@@ -141,7 +146,7 @@ export default function Login() {
 
           <button
             type="submit"
-            className="mt-2 w-full h-11 rounded-full text-white bg-indigo-600 hover:bg-indigo-500 transition "
+            className="mt-2 w-full h-11 rounded-full text-white bg-pink-500 hover:bg-pink-700 transition "
           >
             {state === "login" ? "Login" : "Sign up"}
           </button>

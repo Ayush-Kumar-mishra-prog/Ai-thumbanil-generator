@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { type IThumbnail, dummyThumbnails } from "../assest/assets";
-import { div, img } from "motion/react-client";
+import { type IThumbnail } from "../assest/assets";
 import { useNavigate } from "react-router-dom";
 import { DownloadIcon, TrashIcon } from "lucide-react";
 import { useAuth } from "../context/authContext";
@@ -58,7 +57,12 @@ export default function MyGeneration() {
   }, [isLoggedIn]);
   return (
     <>
-      <div className="mt-32 min-h-screen px-6 md:px-16 lg:px-24 xl:px-32">
+      <div className="relative overflow-hidden mt-32 min-h-screen px-6 md:px-16 lg:px-24 xl:px-32">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-pink-500/20 blur-3xl" />
+          <div className="absolute top-32 right-[-6rem] h-96 w-96 rounded-full bg-fuchsia-500/20 blur-3xl" />
+          <div className="absolute bottom-[-6rem] left-1/3 h-80 w-80 rounded-full bg-rose-500/15 blur-3xl" />
+        </div>
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-zinc-200">My Generations</h1>
           <p className="text-sm text-zinc-400 mt-1">
