@@ -1,0 +1,39 @@
+const handleGenerate = async () => {
+  if (!isLoggedIn) return toast.error("Please login to generate thumbnail");
+  if (!title.trim()) return toast.error("Title is required");
+
+  try {
+    setLoading(true);
+
+    const api_payload = {
+      title: title,                 // top title
+      topic: title,                 // center text
+      additionalPrompt: additionalDetails,
+      aspectRatio: aspectRatio,
+      colorScheme: colorSchemaId,
+      style: style,
+    };
+
+    const { data } = await api.post(
+      "/api/thumbnil/generate",
+      api_payload
+    );
+
+    if (data?.imageUrl) {
+      setThumbnil({
+        image_url: data.imageUrl,
+        aspect_ratio: aspectRatio,
+        title: title,
+      } as IThumbnail);
+
+      toast.success(data.message || "Thumbnail generated");
+    } else {
+      toast.error("Image URL not returned from server");
+    }
+  } catch (error: any) {
+    console.error("Generate error:", error);
+    toast.error("Failed to generate thumbnail");
+  } finally {
+    setLoading(false); // 🔥 MOST IMPORTANT LINE
+  }
+};
