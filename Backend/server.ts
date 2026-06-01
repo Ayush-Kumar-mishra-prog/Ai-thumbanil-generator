@@ -30,7 +30,7 @@ app.use(
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5173"],
+    origin: ["https://ai-thumbanil-generator-server-expre.vercel.app", "https://ai-thumbanil-generator-client-types.vercel.app"],
     credentials: true,
   }),
 );
