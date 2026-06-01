@@ -7,12 +7,6 @@ import AuthRouter from "./Routes/AuthRouter.js";
 import UserRouter from "./Routes/UserRoutes.js";
 import ThumbnilRouter from "./Routes/ThumbnilRoutes.js";
 
-try {
-  await connectDB();
-} catch (err) {
-  console.error("Database connection failed during startup:", err);
-}
-
 const app = express();
 
 const allowedOrigins = [
@@ -71,6 +65,12 @@ app.use("/api/thumbnil", ThumbnilRouter);
 const port = process.env.PORT || 3000;
 
 if (!process.env.VERCEL) {
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error("Database connection failed during startup:", err);
+  }
+
   app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
   });
