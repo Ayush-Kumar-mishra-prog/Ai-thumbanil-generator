@@ -4,6 +4,9 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+const CONFIGURATION_ERROR_MESSAGE =
+  "Server authentication is not configured correctly. Please check deployment environment variables.";
+
 const createToken = (userId: string) => {
   const jwtSecret = process.env.JWT_SECRET;
   if (!jwtSecret) {
@@ -13,9 +16,31 @@ const createToken = (userId: string) => {
   return jwt.sign({ userId }, jwtSecret, { expiresIn: "7d" });
 };
 
+const handleAuthError = (
+  err: unknown,
+  res: Response,
+  context: "registration" | "login" | "profile",
+) => {
+  console.error(`Error during ${context}:`, err);
+
+  if (err instanceof Error && err.message === "JWT_SECRET is not configured") {
+    return res.status(500).json({
+      message: CONFIGURATION_ERROR_MESSAGE,
+      code: "AUTH_CONFIG_MISSING",
+    });
+  }
+
+  return res.status(500).json({ message: "Server error" });
+};
+
 export const register = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Name, email and password are required" });
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "Username already exists" });
@@ -37,14 +62,18 @@ export const register = async (req: Request, res: Response) => {
       .status(201)
       .json({ message: "User registered successfully", user: safeUser, token });
   } catch (err) {
-    console.error("Error during registration:", err);
-    res.status(500).json({ message: "Server error" });
+    return handleAuthError(err, res, "registration");
   }
 };
 
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -65,8 +94,7 @@ export const login = async (req: Request, res: Response) => {
     };
     res.status(200).json({ message: "Login successful", user: safeUser, token });
   } catch (err) {
-    console.error("Error during login:", err);
-    res.status(500).json({ message: "Server error" });
+    return handleAuthError(err, res, "login");
   }
 };
 
@@ -89,7 +117,6 @@ export const verifyUser = async (req: Request, res: Response) => {
     };
     res.status(200).json({ user: safeUser });
   } catch (err) {
-    console.error("Error fetching profile:", err);
-    res.status(500).json({ message: "Server error" });
+    return handleAuthError(err, res, "profile");
   }
 };
