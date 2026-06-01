@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { IUser } from "../assest/assets";
-import api from "../config/api";
+import api, { TOKEN_STORAGE_KEY } from "../config/api";
 import { useNotify } from "./notificationContext";
 
 interface AuthContextProps {
@@ -53,7 +53,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       });
-      if (data.user) {
+      if (data.user && data.token) {
+        localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
         setUser(data.user as IUser);
         setIsLoggedIn(true);
       }
@@ -76,7 +77,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setAuthLoading(true);
     try {
       const { data } = await api.post("/api/auth/login", { email, password });
-      if (data.user) {
+      if (data.user && data.token) {
+        localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
         setUser(data.user as IUser);
         setIsLoggedIn(true);
       }
@@ -92,6 +94,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     try {
       const { data } = await api.post("/api/auth/logout");
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
       setUser(null);
       setIsLoggedIn(false);
       notify(data.message);
@@ -103,12 +106,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUser = async () => {
     try {
+      const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+      if (!token) {
+        setUser(null);
+        setIsLoggedIn(false);
+        return;
+      }
+
       const { data } = await api.get("/api/auth/verify");
       if (data.user) {
         setUser(data.user as IUser);
         setIsLoggedIn(true);
       }
     } catch (e) {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      setUser(null);
+      setIsLoggedIn(false);
       console.log(e);
     }
   };

@@ -1,7 +1,18 @@
 // Controller for authentication-related operations
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+
+const createToken = (userId: string) => {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    throw new Error("JWT_SECRET is not configured");
+  }
+
+  return jwt.sign({ userId }, jwtSecret, { expiresIn: "7d" });
+};
+
 export const register = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
@@ -16,8 +27,7 @@ export const register = async (req: Request, res: Response) => {
       password: hashedPassword,
     });
     await newUser.save();
-    req.session.isLoggedIn = true;
-    req.session.userId = newUser._id.toString();
+    const token = createToken(newUser._id.toString());
     const safeUser = {
       id: newUser._id.toString(),
       name: newUser.name,
@@ -25,7 +35,7 @@ export const register = async (req: Request, res: Response) => {
     };
     res
       .status(201)
-      .json({ message: "User registered successfully", user: safeUser });
+      .json({ message: "User registered successfully", user: safeUser, token });
   } catch (err) {
     console.error("Error during registration:", err);
     res.status(500).json({ message: "Server error" });
@@ -47,14 +57,13 @@ export const login = async (req: Request, res: Response) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-    req.session.isLoggedIn = true;
-    req.session.userId = user._id.toString();
+    const token = createToken(user._id.toString());
     const safeUser = {
       id: user._id.toString(),
       name: user.name,
       email: user.email,
     };
-    res.status(200).json({ message: "Login successful", user: safeUser });
+    res.status(200).json({ message: "Login successful", user: safeUser, token });
   } catch (err) {
     console.error("Error during login:", err);
     res.status(500).json({ message: "Server error" });
@@ -62,20 +71,13 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const logout = (req: Request, res: Response) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error("Error during logout:", err);
-      return res.status(500).json({ message: "Server error" });
-    }
-    res.clearCookie("connect.sid");
-    res.status(200).json({ message: "Logout successful" });
-  });
+  res.status(200).json({ message: "Logout successful" });
 };
 
 // controller for User verification
 export const verifyUser = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.session;
+    const { userId } = req;
     const user = await User.findById(userId).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });

@@ -26,11 +26,28 @@ const colorSchemeDescriptions = {
   pastel: "soft pastel colors",
 };
 
+const INSUFFICIENT_CREDITS_MESSAGE =
+  "Insufficient credits to generate Thumbnail try to buy more credits or use Different Account";
+
+const isInsufficientCreditsError = (err: any) => {
+  const status = err?.response?.status || err?.status;
+  const message =
+    err?.response?.data?.error?.message ||
+    err?.response?.data?.message ||
+    err?.message ||
+    "";
+
+  return (
+    status === 402 ||
+    /insufficient|credit|credits|quota|balance|billing/i.test(message)
+  );
+};
+
 export const generateThumbnil = async (req: Request, res: Response) => {
   let thumbnil: any;
 
   try {
-    const { userId } = req.session;
+    const { userId } = req;
     const {
       title,
       prompt,
@@ -140,6 +157,23 @@ Make it visually striking, high CTR, bold, professional, and attention-grabbing.
       err?.response?.data?.error?.message ||
       err?.response?.data?.message ||
       err?.message;
+
+    if (isInsufficientCreditsError(err)) {
+      if (thumbnil) {
+        try {
+          thumbnil.isGenerating = false;
+          await thumbnil.save();
+        } catch (saveErr) {
+          console.error("Error updating thumbnil status:", saveErr);
+        }
+      }
+
+      return res.status(402).json({
+        message: INSUFFICIENT_CREDITS_MESSAGE,
+        code: "INSUFFICIENT_CREDITS",
+      });
+    }
+
     if (thumbnil) {
       try {
         thumbnil.isGenerating = false;
@@ -160,7 +194,7 @@ Make it visually striking, high CTR, bold, professional, and attention-grabbing.
 export const deleteThumbnil = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { userId } = req.session;
+    const { userId } = req;
     await Thumbnil.findOneAndDelete({ _id: id, userId });
 
     res.status(200).json({ message: "Thumbnil deleted successfully" });

@@ -15,6 +15,10 @@ import { useAuth } from "../context/authContext";
 import api from "../config/api";
 import { useApiSettings } from "../context/apiSettingsContext";
 import { useNotify } from "../context/notificationContext";
+
+const INSUFFICIENT_CREDITS_MESSAGE =
+  "Insufficient credits to generate Thumbnail try to buy more credits or use Different Account";
+
 export default function Generate() {
   const { id } = useParams();
   const { pathname } = useLocation();
@@ -68,7 +72,16 @@ export default function Generate() {
       }
     } catch (err: any) {
       console.error("Error generating thumbnil:", err);
-      notify(err?.response?.data?.message || "Error generating thumbnil", "error");
+      const isInsufficientCredits =
+        err?.response?.status === 402 ||
+        err?.response?.data?.code === "INSUFFICIENT_CREDITS";
+
+      notify(
+        isInsufficientCredits
+          ? INSUFFICIENT_CREDITS_MESSAGE
+          : err?.response?.data?.message || "Error generating thumbnil",
+        "error",
+      );
     } finally {
       setLoading(false);
     }

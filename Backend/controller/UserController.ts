@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import Thumbnil from "../models/Thumbnil.js";
 export const getUserThumbnils = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.session;
+    const { userId } = req;
     const thumbnils = await Thumbnil.find({ userId }).sort({ createdAt: -1 });
     res.status(200).json({ thumbnils });
   } catch (error) {
@@ -13,7 +13,7 @@ export const getUserThumbnils = async (req: Request, res: Response) => {
 // Controller for generate thumbnil
 export const generateThumbnil = async (req: Request, res: Response) => {
     try {
-        const { userId } = req.session;
+        const { userId } = req;
         const {id} = req.params;
        const thumbnil = await Thumbnil.findOne({ _id: id, userId });
       
