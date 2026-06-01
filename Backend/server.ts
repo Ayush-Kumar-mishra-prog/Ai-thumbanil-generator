@@ -1,24 +1,14 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv/config";
-import session from "express-session";
 import connectDB from "./config/db.js";
 import AuthRouter from "./Routes/AuthRouter.js";
 import UserRouter from "./Routes/UserRoutes.js";
 import ThumbnilRouter from "./Routes/ThumbnilRoutes.js";
 
-declare module "express-session" {
-  interface SessionData {
-    isLoggedIn: boolean;
-    userId: string;
-  }
-}
-
 await connectDB();
 
 const app = express();
-
-app.set("trust proxy", 1);
 
 app.use(
   cors({
@@ -27,21 +17,6 @@ app.use(
       "http://localhost:5173",
       "https://ai-thumbanil-generator-client-types.vercel.app",
     ],
-    credentials: true,
-  }),
-);
-
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET as string,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    },
   }),
 );
 
