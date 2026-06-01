@@ -13,42 +13,13 @@ declare module "express-session" {
 }
 const app = express();
 
-app.set("trust proxy", 1);
-
 await connectDB();
-
-const allowedOrigins = [
-  process.env.CLIENT_URL ||
-    "https://ai-thumbanil-generator-client-types.vercel.app",
-  process.env.SERVER_URL ||
-    "https://ai-thumbanil-generator-server-expre.vercel.app",
-].filter(Boolean);
-
-const corsOptions = {
-  origin: (origin: string | undefined, callback: Function) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
-app.use(express.json());
 app.use(
   session({
     secret: process.env.SESSION_SECRET as string,
     resave: false,
     saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    },
+    cookie: { secure: false, httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 },
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URL as string,
       collectionName: "sessions",
@@ -56,10 +27,17 @@ app.use(
   }),
 );
 
+app.use(express.json());
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:5173", "https://ai-thumbanil-generator-client-types.vercel.app"],
+    credentials: true,
+  }),
+);
+
+// Diagnostic: log incoming requests
 app.use((req, _res, next) => {
-  console.log(
-    `[req] ${req.method} ${req.originalUrl} origin=${req.headers.origin}`,
-  );
+  console.log(`[req] ${req.method} ${req.originalUrl}`);
   next();
 });
 
