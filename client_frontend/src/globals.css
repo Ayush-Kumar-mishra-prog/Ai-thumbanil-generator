@@ -1,36 +1,140 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 @import "tailwindcss";
 
 @theme {
-    --font-poppins: "Poppins", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+  --color-pink-50: #f1e2d1;
+  --color-pink-100: #f1e2d1;
+  --color-pink-200: #f1e2d1;
+  --color-pink-300: #9d325b;
+  --color-pink-400: #8f1e49;
+  --color-pink-500: #810b38;
+  --color-pink-600: #810b38;
+  --color-pink-700: #5f0829;
+  --color-pink-800: #5f0829;
+  --color-pink-900: #5f0829;
+  --color-pink-950: #5f0829;
+  --color-fuchsia-500: #810b38;
+  --color-rose-500: #810b38;
+  --color-indigo-400: #810b38;
+  --color-indigo-500: #810b38;
+  --color-indigo-600: #810b38;
+  --color-black: #111827;
+  --color-white: #ffffff;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+:root {
+  --brand: #810b38;
+  --brand-dark: #5f0829;
+  --paper: #f1e2d1;
+}
+
+.body,
 body {
-    @apply bg-black text-white text-sm antialiased font-poppins;
+  @apply text-sm antialiased font-poppins;
+  background:
+    linear-gradient(135deg, rgba(129, 11, 56, 0.1), transparent 32%),
+    linear-gradient(180deg, #f1e2d1 0%, #fff8f0 46%, #f1e2d1 100%);
+  color: var(--color-black);
+  min-height: 100vh;
+}
+.custom-css-white {
+  color: white;
+}
+.cutom-css-title {
+  background-color: aqua;
 }
 
 body::selection {
-    @apply bg-pink-600 text-white;
+  background: var(--brand);
+  color: var(--paper);
 }
 
 button {
-    @apply cursor-pointer;
+  @apply cursor-pointer;
 }
 
 .move-gradient {
-    background-image: linear-gradient(to right, var(--color-pink-500), var(--color-pink-300));
-    background-size: 200% 100%;
-    animation: movegradient 5s infinite;
+  background-image: linear-gradient(to right, var(--brand), var(--paper));
+  background-size: 200% 100%;
+  animation: movegradient 5s infinite;
+}
+
+.bg-pink-600,
+.bg-pink-500,
+.bg-pink-400,
+.bg-indigo-600,
+.bg-indigo-500,
+.bg-fuchsia-500,
+.bg-rose-500 {
+  background-color: var(--brand) !important;
+}
+
+.bg-black,
+.bg-gray-900,
+.bg-gray-800,
+.bg-slate-950 {
+  background-color: var(--color-black) !important;
+}
+
+.text-white,
+.text-zinc-100,
+.text-zinc-200,
+.text-zinc-300,
+.text-slate-100,
+.text-slate-200,
+.text-slate-300 {
+  color: var(--color-white) !important;
+}
+
+.text-gray-400,
+.text-gray-500,
+.text-zinc-400,
+.text-zinc-500,
+.text-slate-400,
+.text-slate-500 {
+  color: color-mix(in srgb, var(--brand) 68%, transparent) !important;
+}
+
+.border-white\/10,
+.border-white\/12,
+.border-gray-700,
+.border-gray-800,
+.border-slate-700,
+.border-slate-800,
+.border-pink-800,
+.border-pink-900,
+.border-pink-950 {
+  border-color: color-mix(in srgb, var(--brand) 18%, transparent) !important;
+}
+
+.hover\:bg-pink-700:hover,
+.hover\:bg-pink-600:hover,
+.hover\:bg-indigo-500:hover {
+  background-color: var(--brand-dark) !important;
+}
+
+.hover\:text-pink-500:hover,
+.hover\:text-pink-600:hover,
+.hover\:text-pink-700:hover,
+.hover\:text-indigo-400:hover,
+.text-pink-600,
+.text-indigo-400 {
+  color: var(--brand) !important;
 }
 
 @keyframes movegradient {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }

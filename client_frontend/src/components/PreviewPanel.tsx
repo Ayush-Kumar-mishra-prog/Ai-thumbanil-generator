@@ -35,22 +35,18 @@ export default function PreviewPanel({
   return (
     <>
       <div className="relative mx-auto w-full max-w-2xl overflow-hidden">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-16 -left-16 rounded-full bg-pink-400/20 blur-3xl" />
-          <div className="absolute bottom-[-3rem] right-[-3rem] h-72 w-72 rounded-full bg-fuchsia-400/20 blur-3xl" />
-        </div>
         <div className={`relative  ${aspectClasses[aspectRatio]}`}>
           {isLoading && (
             <div
               className="absolute inset-0 flex flex-col
-                    items-center justify-center gap-4 bg-black/25"
+                    items-center justify-center gap-4 bg-[var(--brand)]/10"
             >
-              <Loader2Icon className="size-8 animate-spin text-zinc-400" />
+              <Loader2Icon className="size-8 animate-spin text-[var(--brand)]/70" />
               <div className="text-center">
-                <p className="text-sm font-medium text-zinc-200">
+                <p className="text-sm font-medium text-[var(--brand)]">
                   AI is creating your thumbnil..
                 </p>
-                <p className="mt-1 text-xs text-zinc-400">
+                <p className="mt-1 text-xs text-[var(--brand)]/60">
                   This may take 10-20 seconds
                 </p>
               </div>
@@ -66,12 +62,12 @@ export default function PreviewPanel({
               />
 
               {/* Text Overlay */}
-              <div className="absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black/60 to-transparent">
-                <h3 className="text-white text-lg font-bold mb-2">
+              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-[var(--brand)]/80 to-transparent p-4">
+                <h3 className="mb-2 text-lg font-bold text-[var(--paper)]">
                   {thumbnil.title}
                 </h3>
                 {thumbnil.description && (
-                  <p className="text-white/80 text-sm">
+                  <p className="text-sm text-[var(--paper)]/80">
                     {thumbnil.description}
                   </p>
                 )}
@@ -79,14 +75,14 @@ export default function PreviewPanel({
 
               <div
                 className="absolute inset-0 flex items-end justify-center
-                         bg-black/10 opacity-0 transition-opacity group-hover:opacity-100"
+                         bg-[var(--brand)]/10 opacity-0 transition-opacity group-hover:opacity-100"
               >
                 <DownloadIcon className="size-4" />
                 <button
                   type="button"
                   className="mb-6 flex items-center gap-2 
-                            rounded px-5 py-2.5 text-xs font-medium transition bg-white/30
-                            ring-2 ring-white/40 backdrop-blur hover:scale-105 active:scale-95
+                            rounded bg-[var(--paper)]/90 px-5 py-2.5 text-xs font-medium text-[var(--brand)] transition
+                            ring-2 ring-[var(--paper)]/40 backdrop-blur hover:scale-105 active:scale-95
                              "
                   onClick={onDownload}
                 >
@@ -98,20 +94,20 @@ export default function PreviewPanel({
           {!isLoading && !thumbnil?.image_url && (
             <div
               className="absolute inset-0 m-2 flex flex-col items-center 
-                    justify-center gap-4 rounded-lg border-2 border-dashed border-white/20
-                    bg-white/10"
+                    justify-center gap-4 rounded-lg border-2 border-dashed border-[var(--brand)]/20
+                    bg-[var(--brand)]/5"
             >
               <div
                 className="max-sm:hidden flex size-20 items-center justify-center
-                        rounded-full bg-white/10"
+                        rounded-full bg-[var(--brand)]/10"
               >
-                <ImageIcon className="size-10 text-white opacity-50" />
+                <ImageIcon className="size-10 text-[var(--brand)] opacity-50" />
               </div>
               <div className="px-4 text-center">
-                <p className="text-sm font-medium text-zinc-200">
+                <p className="text-sm font-medium text-[var(--brand)]">
                   Generate your first thumbnil
                 </p>
-                <p className="mt-1 text-xs text-zinc-400">
+                <p className="mt-1 text-xs text-[var(--brand)]/60">
                   Fill out the form and click Generate
                 </p>
               </div>

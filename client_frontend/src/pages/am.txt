@@ -1,6 +1,6 @@
 const handleGenerate = async () => {
-  if (!isLoggedIn) return toast.error("Please login to generate thumbnail");
-  if (!title.trim()) return toast.error("Title is required");
+  if (!isLoggedIn) return notify("Please login to generate thumbnail", "error");
+  if (!title.trim()) return notify("Title is required", "error");
 
   try {
     setLoading(true);
@@ -26,13 +26,13 @@ const handleGenerate = async () => {
         title: title,
       } as IThumbnail);
 
-      toast.success(data.message || "Thumbnail generated");
+      notify(data.message || "Thumbnail generated");
     } else {
-      toast.error("Image URL not returned from server");
+      notify("Image URL not returned from server", "error");
     }
   } catch (error: any) {
     console.error("Generate error:", error);
-    toast.error("Failed to generate thumbnail");
+    notify("Failed to generate thumbnail", "error");
   } finally {
     setLoading(false); // 🔥 MOST IMPORTANT LINE
   }

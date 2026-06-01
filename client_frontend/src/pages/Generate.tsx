@@ -12,13 +12,16 @@ import StyleSelector from "../components/StyleSelector";
 import ColorSchema from "../components/ColorSchema";
 import PreviewPanel from "../components/PreviewPanel";
 import { useAuth } from "../context/authContext";
-import toast from "react-hot-toast";
 import api from "../config/api";
+import { useApiSettings } from "../context/apiSettingsContext";
+import { useNotify } from "../context/notificationContext";
 export default function Generate() {
   const { id } = useParams();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
+  const { provider, model, apiKey, hasApiKey } = useApiSettings();
+  const { notify } = useNotify();
   const [title, setTitle] = useState("");
   const [additionalDetails, setAdditionalDetails] = useState("");
   const [thumbnil, setThumbnil] = useState<IThumbnail | null>(null);
@@ -31,8 +34,17 @@ export default function Generate() {
   const [styleDropdown, setStyleDropdown] = useState(false);
 
   const handleGenerate = async () => {
-    if (!isLoggedIn) return toast.error("Please login to generate thumbnail");
-    if (!title.trim()) return toast.error("Title is required");
+    if (!isLoggedIn) {
+      notify("Please login to generate thumbnail", "error");
+      navigate(`/login?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    if (!hasApiKey) {
+      notify("Please add your API key before generating", "error");
+      navigate(`/apis?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    if (!title.trim()) return notify("Title is required", "error");
     setLoading(true);
 
     try {
@@ -43,17 +55,20 @@ export default function Generate() {
         color_scheme: colorSchemaId,
         style,
         text_overlay: true,
+        apiProvider: provider,
+        apiKey: apiKey.trim(),
+        model,
       };
 
       const { data } = await api.post("/api/thumbnil/generate", api_payload);
 
       if (data.thumbnil) {
         navigate(`/generate/${data.thumbnil._id}`);
-        toast.success(data.message);
+        notify(data.message);
       }
     } catch (err: any) {
       console.error("Error generating thumbnil:", err);
-      toast.error(err?.response?.data?.message || "Error generating thumbnil");
+      notify(err?.response?.data?.message || "Error generating thumbnil", "error");
     } finally {
       setLoading(false);
     }
@@ -72,7 +87,7 @@ export default function Generate() {
       setStyle(data?.thumbnil?.style);
     } catch (err: any) {
       console.error("Error fetching thumbnil:", err);
-      toast.error("Error fetching thumbnil");
+      notify("Error fetching thumbnil", "error");
     }
   };
   useEffect(() => {
@@ -94,24 +109,22 @@ export default function Generate() {
 
   return (
     <>
-      <div className="relative overflow-hidden pt-24 min-h-screen">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-pink-500/20 blur-3xl" />
-          <div className="absolute top-32 right-[-6rem] h-96 w-96 rounded-full bg-fuchsia-500/20 blur-3xl" />
-          <div className="absolute bottom-[-6rem] left-1/3 h-80 w-80 rounded-full bg-rose-500/15 blur-3xl" />
-        </div>
-        <main className="max-w-6xl max-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 lg:pb-8">
+      <div className="relative min-h-screen overflow-hidden pt-24">
+        <main className="mx-auto max-w-6xl px-4 py-8 pb-28 sm:px-6 lg:px-8 lg:pb-8">
           <div className="grid lg:grid-cols-[400px_1fr] gap-8">
             {/* {left pannel} */}
             <div className="space-y-6">
-              <div className="p-6 rounded-2xl bg-white/8 border border-white/12 shadow-xl space-y-6">
+              <div className="space-y-6 rounded-lg border border-[var(--brand)]/15 bg-[var(--paper)] p-6 shadow-xl shadow-[var(--brand)]/10">
                 <div>
-                  <h1 className="text-xl font-bold text-zinc-300 mb-1">
+                  <h1 className="mb-1 text-xl font-bold text-[var(--brand)]">
                     Create your thumbnil
                   </h1>
-                  <p className="text-sm text-zinc-400">
+                  <p className="text-sm text-[var(--brand)]/65">
                     Describe your vision and let AI bring it to life
                   </p>
+                </div>
+                <div className="rounded-lg border border-[var(--brand)]/15 bg-[var(--brand)]/5 px-4 py-3 text-sm text-[var(--brand)]">
+                  Selected model: <span className="font-semibold">{model}</span>
                 </div>
                 <div className="space-y-5">
                   <div className="space-y-2">
@@ -124,11 +137,11 @@ export default function Generate() {
                       onChange={(e) => setTitle(e.target.value)}
                       maxLength={100}
                       placeholder="E.g.,10 tips for better sleep"
-                      className="w-full px-4 py-3 rounded-lg border border-white/12 bg-black/20 text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-pink-500
+                      className="w-full rounded-lg border border-[var(--brand)]/20 bg-[#fff8f0] px-4 py-3 text-[var(--brand)] placeholder:text-[var(--brand)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/25
                                 "
                     />
                     <div>
-                      <span className="text-xs text-zinc-400">
+                      <span className="text-xs text-[var(--brand)]/60">
                         {title.length}/100{" "}
                       </span>
                     </div>
@@ -153,14 +166,13 @@ export default function Generate() {
                     <label className="block text-sm font-medium">
                       {" "}
                       Additional prompts
-                      <span className="text-zinc-400">(optional)</span>
+                      <span className="text-[var(--brand)]/55">(optional)</span>
                     </label>
                     <textarea
                       value={additionalDetails}
                       onChange={(e) => setAdditionalDetails(e.target.value)}
                       placeholder="Add any specific preferences..."
-                      className="w-full px-4 py-3 rounded-lg border border-white/10 bg-white/6 text-zinc-100 
-  placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"
+                      className="w-full resize-none rounded-lg border border-[var(--brand)]/20 bg-[#fff8f0] px-4 py-3 text-[var(--brand)] placeholder:text-[var(--brand)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/25"
                     />
                   </div>
                 </div>
@@ -168,7 +180,7 @@ export default function Generate() {
                 {!id && (
                   <button
                     onClick={handleGenerate}
-                    className="text-[15px] w-full py-3.5 rounded-xl font-medium bg-pink-500 hover:from-pink-700 disabled:cursor-not-allowed transition-colors"
+                    className="w-full rounded-lg bg-[var(--brand)] py-3.5 text-[15px] font-semibold text-[var(--paper)] transition-colors hover:bg-[var(--brand-dark)] disabled:cursor-not-allowed"
                   >
                     {loading ? "Generating..." : "Generate Thumbnil"}
                   </button>
@@ -176,8 +188,8 @@ export default function Generate() {
               </div>
             </div>
             <div>
-              <div className="p-6 rounded-2xl bg-white/8 border border-white/10 shadow-xl">
-                <h2 className="text-lg font-semibold text-zinc-100 mb-4">
+              <div className="rounded-lg border border-[var(--brand)]/15 bg-[var(--paper)] p-6 shadow-xl shadow-[var(--brand)]/10">
+                <h2 className="mb-4 text-lg font-semibold text-[var(--brand)]">
                   Preview
                 </h2>
                 <PreviewPanel

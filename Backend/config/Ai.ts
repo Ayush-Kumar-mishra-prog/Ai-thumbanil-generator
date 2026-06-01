@@ -1,13 +1,21 @@
 import { v2 as cloudinary } from "cloudinary";
-import {GoogleGenAI} from "@google/genai";
 import OpenAI from 'openai';
 
 // Configure Cloudinary using environment variables.
 // Ensure CLOUDINARY_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET are set.
-const ai = new OpenAI({
-  baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
+export const createOpenRouterClient = (apiKey?: string) => {
+  const finalApiKey = apiKey?.trim() || process.env.OPENROUTER_API_KEY?.trim();
+
+  if (!finalApiKey) {
+    throw new Error("OpenRouter API key is required");
+  }
+
+  return new OpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: finalApiKey,
+  });
+};
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -18,4 +26,4 @@ cloudinary.config({
 // We export a nullable `ai` so controllers can optionally use it when available.
 
 export { cloudinary };
-export default ai;
+export default createOpenRouterClient;

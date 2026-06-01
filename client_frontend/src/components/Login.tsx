@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/authContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { LockKeyholeIcon, MailIcon, UserIcon } from "lucide-react";
 
 export default function Login() {
   const [state, setState] = useState("login");
 
-  const { user, login, signup } = useAuth();
+  const { user, login, signup, authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -17,16 +20,16 @@ export default function Login() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (state === "login") {
-      login(formData);
+      void login(formData);
     } else {
-      signup(formData);
+      void signup(formData);
     }
   };
   useEffect(() => {
     if (user) {
-      navigate("/");
+      navigate(redirectTo);
     }
-  }, [user, navigate]);
+  }, [user, navigate, redirectTo]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -34,47 +37,31 @@ export default function Login() {
   };
   return (
     <>
-      <div className="relative overflow-hidden min-h-screen flex items-center justify-center">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-pink-500/20 blur-3xl" />
-          <div className="absolute top-24 right-[-7rem] h-96 w-96 rounded-full bg-fuchsia-500/20 blur-3xl" />
-          <div className="absolute bottom-[-6rem] left-1/3 h-72 w-72 rounded-full bg-rose-500/15 blur-3xl" />
-        </div>
+      <div className="flex min-h-screen items-center justify-center overflow-hidden px-4 pt-20">
+        <div className="absolute inset-x-0 top-0 h-64 bg-[linear-gradient(180deg,var(--brand)_0%,rgba(129,11,56,0.08)_72%,transparent_100%)]" />
         <form
           onSubmit={handleSubmit}
-          className="sm:w-87.5 w-full text-center bg-gray-900 border border-gray-800 rounded-2xl px-8"
+          className="relative w-full max-w-md rounded-lg border border-[var(--brand)]/15 bg-[var(--paper)] px-7 py-8 text-center shadow-2xl shadow-[var(--brand)]/15"
         >
-          <h1 className="text-white text-3xl mt-10 font-medium">
+          <p className="mx-auto mb-5 flex size-12 items-center justify-center rounded-lg bg-[var(--brand)] text-xl font-bold text-[var(--paper)]">
+            T
+          </p>
+          <h1 className="text-3xl font-semibold text-[var(--brand)]">
             {state === "login" ? "Login" : "Sign up"}
           </h1>
 
-          <p className="text-gray-400 text-sm mt-2">
-            Please sign in to continue
+          <p className="mt-2 text-sm text-[var(--brand)]/65">
+            Continue to Thumblify
           </p>
 
           {state !== "login" && (
-            <div className="flex items-center mt-6 w-full bg-gray-800 border border-gray-700 h-12 rounded-full overflow-hidden pl-6 gap-2 ">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                className="text-gray-400"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                {" "}
-                <circle cx="12" cy="8" r="5" />{" "}
-                <path d="M20 21a8 8 0 0 0-16 0" />{" "}
-              </svg>
+            <div className="mt-7 flex h-12 w-full items-center gap-2 overflow-hidden rounded-lg border border-[var(--brand)]/20 bg-[#fff8f0] pl-4">
+              <UserIcon className="size-4 text-[var(--brand)]/55" />
               <input
                 type="text"
                 name="name"
                 placeholder="Name"
-                className="w-full bg-transparent text-white placeholder-gray-400 border-none outline-none "
+                className="w-full border-none bg-transparent text-[var(--brand)] outline-none placeholder:text-[var(--brand)]/40"
                 value={formData.name}
                 onChange={handleChange}
                 required
@@ -82,56 +69,28 @@ export default function Login() {
             </div>
           )}
 
-          <div className="flex items-center w-full mt-4 bg-gray-800 border border-gray-700 h-12 rounded-full overflow-hidden pl-6 gap-2 ">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              className="text-gray-400"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {" "}
-              <path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7" />{" "}
-              <rect x="2" y="4" width="20" height="16" rx="2" />{" "}
-            </svg>
+          <div
+            className={`${state === "login" ? "mt-7" : "mt-4"} flex h-12 w-full items-center gap-2 overflow-hidden rounded-lg border border-[var(--brand)]/20 bg-[#fff8f0] pl-4`}
+          >
+            <MailIcon className="size-4 text-[var(--brand)]/55" />
             <input
               type="email"
               name="email"
               placeholder="Email id"
-              className="w-full bg-transparent text-white placeholder-gray-400 border-none outline-none "
+              className="w-full border-none bg-transparent text-[var(--brand)] outline-none placeholder:text-[var(--brand)]/40"
               value={formData.email}
               onChange={handleChange}
               required
             />
           </div>
 
-          <div className=" flex items-center mt-4 w-full bg-gray-800 border border-gray-700 h-12 rounded-full overflow-hidden pl-6 gap-2 ">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              className="text-gray-400"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {" "}
-              <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />{" "}
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />{" "}
-            </svg>
+          <div className="mt-4 flex h-12 w-full items-center gap-2 overflow-hidden rounded-lg border border-[var(--brand)]/20 bg-[#fff8f0] pl-4">
+            <LockKeyholeIcon className="size-4 text-[var(--brand)]/55" />
             <input
               type="password"
               name="password"
               placeholder="Password"
-              className="w-full bg-transparent text-white placeholder-gray-400 border-none outline-none"
+              className="w-full border-none bg-transparent text-[var(--brand)] outline-none placeholder:text-[var(--brand)]/40"
               value={formData.password}
               onChange={handleChange}
               required
@@ -139,28 +98,37 @@ export default function Login() {
           </div>
 
           <div className="mt-4 text-left">
-            <button className="text-sm text-indigo-400 hover:underline">
+            <button
+              type="button"
+              className="text-sm text-[var(--brand)]/70 hover:text-[var(--brand)]"
+            >
               Forget password?
             </button>
           </div>
 
-          <button
-            type="submit"
-            className="mt-2 w-full h-11 rounded-full text-white bg-pink-500 hover:bg-pink-700 transition "
-          >
-            {state === "login" ? "Login" : "Sign up"}
-          </button>
+          {authLoading ? (
+            <div className="mt-2 h-11 w-full rounded-lg bg-[var(--brand)] text-[var(--paper)] flex items-center justify-center">
+              <span className="w-5 h-5 border-2 border-[var(--paper)]/40 border-t-[var(--paper)] rounded-full animate-spin" />
+            </div>
+          ) : (
+            <button
+              type="submit"
+              className="mt-2 h-11 w-full rounded-lg bg-[var(--brand)] text-[var(--paper)] transition hover:bg-[var(--brand-dark)]"
+            >
+              {state === "login" ? "Login" : "Sign up"}
+            </button>
+          )}
 
           <p
             onClick={() =>
               setState((prev) => (prev === "login" ? "register" : "login"))
             }
-            className="text-gray-400 text-sm mt-3 mb-11 cursor-pointer"
+            className="mt-4 cursor-pointer text-sm text-[var(--brand)]/65"
           >
             {state === "login"
               ? "Don't have an account?"
               : "Already have an account?"}
-            <span className="text-indigo-400 hover:underline ml-1">
+            <span className="ml-1 font-semibold text-[var(--brand)] hover:underline">
               click here
             </span>
           </p>

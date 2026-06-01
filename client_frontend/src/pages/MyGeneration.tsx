@@ -4,10 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { DownloadIcon, TrashIcon } from "lucide-react";
 import { useAuth } from "../context/authContext";
 import api from "../config/api";
-import { toast } from "react-hot-toast/headless";
+import { useNotify } from "../context/notificationContext";
 
 export default function MyGeneration() {
   const { isLoggedIn } = useAuth();
+  const { notify } = useNotify();
   const navigate = useNavigate();
   const aspectRatioClassMap: Record<string, string> = {
     "16:9": "aspect-video",
@@ -17,6 +18,7 @@ export default function MyGeneration() {
 
   const [thumbnils, setThumbnil] = useState<IThumbnail[]>([]);
   const [loading, setLoading] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const fetchThumnil = async () => {
     try {
       setLoading(true);
@@ -24,14 +26,15 @@ export default function MyGeneration() {
       setThumbnil(data.thumbnils || []);
     } catch (err: any) {
       console.log(err);
-      toast.error(err?.response?.data?.message || "Something went wrong");
+      notify(err?.response?.data?.message || "Something went wrong", "error");
     } finally {
       setLoading(false);
     }
   };
   const handleDownload = (image_url: string) => {
+    if (!image_url) return;
     const link = document.createElement("a");
-    link.href = image_url.replace("./upload", "./upload/f1_attachement");
+    link.href = image_url.replace("/upload/", "/upload/fl_attachment/");
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -42,53 +45,46 @@ export default function MyGeneration() {
         "Are you sure you want to delete this thumbnil?",
       );
       if (!confirm) return;
-      const { data } = await api.delete(`/api/thumbnil/${id}`);
-      toast.success(data.message);
+      const { data } = await api.delete(`/api/thumbnil/delete/${id}`);
+      notify(data.message);
       fetchThumnil();
     } catch (err: any) {
       console.log(err);
-      toast.error(err?.response?.data?.message || "Something went wrong");
+      notify(err?.response?.data?.message || "Something went wrong", "error");
     }
   };
   useEffect(() => {
     if (isLoggedIn) {
       fetchThumnil();
+    } else {
+      navigate("/login?redirect=/my-generation");
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, navigate]);
   return (
     <>
-      <div className="relative overflow-hidden mt-32 min-h-screen px-6 md:px-16 lg:px-24 xl:px-32">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-pink-500/20 blur-3xl" />
-          <div className="absolute top-32 right-[-6rem] h-96 w-96 rounded-full bg-fuchsia-500/20 blur-3xl" />
-          <div className="absolute bottom-[-6rem] left-1/3 h-80 w-80 rounded-full bg-rose-500/15 blur-3xl" />
-        </div>
+      <div className="relative mt-32 min-h-screen overflow-hidden px-6 md:px-16 lg:px-24 xl:px-32">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-zinc-200">My Generations</h1>
-          <p className="text-sm text-zinc-400 mt-1">
+          <h1 className="text-2xl font-bold text-[var(--brand)]">My Generations</h1>
+          <p className="mt-1 text-sm text-[var(--brand)]/65">
             View and manage all your AI- Generated thumbnails
           </p>
         </div>
         {loading && (
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:
-                grid-cols-3 gap-6"
-          >
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-2xl bg-white/6 border
-                         border-white/10 animate-pulse h-[260px]"
+                className="h-[260px] animate-pulse rounded-lg border border-[var(--brand)]/10 bg-[var(--brand)]/5"
               />
             ))}
           </div>
         )}
         {!loading && thumbnils.length === 0 && (
           <div className="text-center py-24">
-            <h3 className="text-lg font-semibold text-zinc-200">
+            <h3 className="text-lg font-semibold text-[var(--brand)]">
               No Thumbnils
             </h3>
-            <p className="text-sm text-zinc-400 mt-2">
+            <p className="mt-2 text-sm text-[var(--brand)]/65">
               Generate your first thumbnil to see it here
             </p>
           </div>
@@ -101,21 +97,27 @@ export default function MyGeneration() {
             {thumbnils.map((thumb: IThumbnail) => {
               const aspectClasses =
                 aspectRatioClassMap[thumb.aspect_ratio || "16:9"];
+              const imageUnavailable = !thumb.image_url || imageErrors[thumb._id];
               return (
                 <div
                   key={thumb._id}
                   onClick={() => navigate(`/generate/${thumb._id}`)}
-                  className="mb-8 group relative cursor-pointer rounded-2xl bg-white/6 border
-                            border-white/10 transition shadow-xl"
+                  className="group relative mb-8 cursor-pointer rounded-lg border border-[var(--brand)]/15 bg-[var(--paper)] shadow-xl shadow-[var(--brand)]/10 transition"
                 >
                   <div
                     className={`relative overflow-hidden
-                                     rounded-t-2xl ${aspectClasses} bg-black`}
+                                     rounded-t-lg ${aspectClasses} bg-[var(--brand)]/10`}
                   >
-                    {thumb.image_url ? (
+                    {!imageUnavailable ? (
                       <img
                         src={thumb.image_url}
                         alt={thumb.title}
+                        onError={() =>
+                          setImageErrors((current) => ({
+                            ...current,
+                            [thumb._id]: true,
+                          }))
+                        }
                         className="w-full
                                             h-full object-cover group-hover:scale-105 transition-transform
                                              duration-300"
@@ -123,37 +125,36 @@ export default function MyGeneration() {
                     ) : (
                       <div
                         className="w-full h-full flex items-center
-                                             justify-center text-sm text-zinc-400"
+                                             justify-center text-sm text-[var(--brand)]/60"
                       >
-                        {thumb.isGenerating ? "Generating..." : "No images"}
+                        {thumb.isGenerating ? "Generating..." : "Image unavailable"}
                       </div>
                     )}
                     {thumb.isGenerating && (
                       <div
-                        className="absolute inset-0 bg-black/50 flex items-center justify-center 
-text-sm font-medium text-white"
+                        className="absolute inset-0 flex items-center justify-center bg-[var(--brand)]/70 text-sm font-medium text-[var(--paper)]"
                       >
                         Generating...
                       </div>
                     )}
                   </div>
                   <div className="p-4 space-y-2">
-                    <h3 className="text-sm font-semibold text-zinc-400">
+                    <h3 className="text-sm font-semibold text-[var(--brand)]">
                       {thumb.title}
                     </h3>
-                    <div className="flex flex-wrap gap-2 text-xs text-zinc-400">
-                      <span className="px-2 py-0.5 rounded bg-white/8">
+                    <div className="flex flex-wrap gap-2 text-xs text-[var(--brand)]/65">
+                      <span className="rounded bg-[var(--brand)]/10 px-2 py-0.5">
                         {thumb.style}
                       </span>
-                      <span className="px-2 py-0.5 rounded bg-white/8">
+                      <span className="rounded bg-[var(--brand)]/10 px-2 py-0.5">
                         {thumb.color_scheme}
                       </span>
-                      <span className="px-2 py-0.5 rounded bg-white/8">
+                      <span className="rounded bg-[var(--brand)]/10 px-2 py-0.5">
                         {thumb.aspect_ratio}
                       </span>
                     </div>
-                    <p className="text-xs text-zinc-500">
-                      {new Date(thumb.createdAt!).toDateString()}
+                    <p className="text-xs text-[var(--brand)]/50">
+                      {thumb.createdAt ? new Date(thumb.createdAt).toDateString() : "Recently created"}
                     </p>
                   </div>
                   <div
@@ -164,14 +165,12 @@ text-sm font-medium text-white"
                   >
                     <TrashIcon
                       onClick={() => handleDelete(thumb._id)}
-                      className="size-6 bg-black/50 p-1 rounded
-                                         hover:bg-pink-600 transition-all"
+                      className="size-6 rounded bg-[var(--brand)]/70 p-1 text-[var(--paper)] transition-all hover:bg-[var(--brand-dark)]"
                     />
 
                     <DownloadIcon
-                      onClick={() => handleDownload(thumb.image_url!)}
-                      className="size-6 bg-black/50 p-1 rounded
-                                         hover:bg-pink-600 transition-all"
+                      onClick={() => handleDownload(thumb.image_url || "")}
+                      className="size-6 rounded bg-[var(--brand)]/70 p-1 text-[var(--paper)] transition-all hover:bg-[var(--brand-dark)]"
                     />
                   </div>
                 </div>

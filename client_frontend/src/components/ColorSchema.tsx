@@ -1,4 +1,3 @@
-import { div } from "motion/react-client";
 import { colorSchemes } from "../assest/assets";
 
 
@@ -8,13 +7,13 @@ export default function ColorSchema({value, onChange}:{value:String;
     return(
         <>
         <div className="space-y-3">
-            <label className='block text-sm font-medium text-zinc-200'>Color Schema</label>
+            <label className='block text-sm font-medium text-[var(--brand)]'>Color Schema</label>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {colorSchemes.map((scheme)=>
               <button key={scheme.id} 
               onClick={()=>onChange(scheme.id)}
               className={`relative rounded-lg transition-all ${value===scheme.id 
-                && `ring-2 ring-pink-500`
+                && `ring-2 ring-[var(--brand)] ring-offset-2 ring-offset-[var(--paper)]`
               }`} title={scheme.name}>
                 <div className="flex h-10 rounded-lg overflow-hidden">
                     {scheme.colors.map((color,i)=>(
@@ -23,7 +22,7 @@ export default function ColorSchema({value, onChange}:{value:String;
                 </div>
               </button>  )}
             </div>
-            <p className="text-xs text-zinc-400">Selected: {colorSchemes.find((s)=>
+            <p className="text-xs text-[var(--brand)]/60">Selected: {colorSchemes.find((s)=>
              s.id === value
             )?.name}   </p>
         </div>

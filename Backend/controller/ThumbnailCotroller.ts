@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Thumbnil from "../models/Thumbnil.js";
-import ai from "../config/Ai.js";
+import { createOpenRouterClient } from "../config/Ai.js";
 import { v2 as cloudinary } from "cloudinary";
 const stylePrompts = {
   "Bold & Graphic":
@@ -41,10 +41,30 @@ export const generateThumbnil = async (req: Request, res: Response) => {
       color_scheme,
       colorScheme,
       text_overlay,
+      apiProvider,
+      apiKey,
+      api_key,
+      model,
     } = req.body;
     const user_prompt = prompt ?? additionalPrompt;
     const final_aspect_ratio = aspect_ratio ?? aspectRatio ?? "16:9";
     const final_color_scheme = color_scheme ?? colorScheme;
+    const provider = apiProvider ?? "OpenRouter";
+    const selectedModel = model ?? "google/gemini-3.1-flash-image-preview";
+    const openRouterApiKey =
+      typeof apiKey === "string" && apiKey.trim()
+        ? apiKey.trim()
+        : typeof api_key === "string" && api_key.trim()
+          ? api_key.trim()
+          : process.env.OPENROUTER_API_KEY?.trim();
+
+    if (provider !== "OpenRouter") {
+      return res.status(400).json({ message: "Only OpenRouter is supported right now" });
+    }
+
+    if (!openRouterApiKey) {
+      return res.status(400).json({ message: "OpenRouter API key is required" });
+    }
 
     //  Create DB entry
     thumbnil = await Thumbnil.create({
@@ -77,8 +97,10 @@ Make it visually striking, high CTR, bold, professional, and attention-grabbing.
 `;
 
     //  Generate Image (Chat Completions)
+    const ai = createOpenRouterClient(openRouterApiKey);
+
     const response: any = await ai.chat.completions.create({
-      model: "google/gemini-3.1-flash-image-preview",
+      model: selectedModel,
       messages: [{ role: "user", content: finalPrompt }],
       max_tokens: 2048,
     });
