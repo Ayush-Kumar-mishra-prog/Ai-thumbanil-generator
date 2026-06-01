@@ -18,6 +18,8 @@ await connectDB();
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 app.use(
   cors({
     origin: [
@@ -34,7 +36,12 @@ app.use(
     secret: process.env.SESSION_SECRET as string,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 },
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    },
   }),
 );
 
